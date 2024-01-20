@@ -1,4 +1,15 @@
-//step one, basic math
+let firstNumber = ''; 
+let secondNumber = '';
+let currentOperator = null;
+let shouldResetScreen = false;
+
+const display = document.querySelector('[data-current-operand]');
+const numberButtons = document.querySelectorAll("[data-number]");
+const operatorButtons = document.querySelectorAll("[data-operation]");
+const equalsButton = document.querySelector("[data-equals]");
+const clearButton = document.querySelector("[data-all-clear]");
+const backSpaceButton = document.querySelector("[data-delete]");
+
 function add(a, b) {
     return a + b;
 };
@@ -13,21 +24,13 @@ function multiply(a, b) {
 
 function divide(a, b) {
     if (b === 0) {
-        return "Error: Division by zero";
+        return 0;
     } else {
         return a / b;
     };
 };
 
-//the insides of my scoreboard
-let firstNum = ''; //stores first number
-let secondNum = ''; //stores second number
-let operator = null; //stores operator
-
-let currentNum = firstNum;
-
-
-//the switch(+-*/)
+//Step 3: Takes the nums, and opertor, and selects appropriate function
 function operate(operator, num1, num2) {
     switch (operator) {
         case '+':
@@ -43,36 +46,52 @@ function operate(operator, num1, num2) {
     };
 };
 
-//the hmtl target selector
-const numberButtons = document.querySelectorAll('.number'); //select number id in html
-
-//the eventListener for previous html targeter-----------------
 numberButtons.forEach(button => {
-    button.addEventListener('click', function() {
-        updateDisplay(this.textContent);
-    });
+    button.addEventListener('click', () => handleNumber(button.textContent));
 });
 
-function updateDisplay(number) {
-    if (currentNum === firstNum) {
-        firstNum += number;
-    } else {
-        secondNum += number;
-    }
-    document.getElementById('display').textContent = currentNum === firstNum ? firstNum : secondNum;
-};
-//--------------------------------------------------------------
-//takes +-*/ and also switches currentNum or something?
-function setOperator(selectedOperator) {
-    operator = selectedOperator;
-    currentNum = secondNum
+operatorButtons.forEach(button => {
+    button.addEventListener('click', () => handleOperator(button.textContent));
+});
+
+clearButton.addEventListener('click', clear);
+backSpaceButton.addEventListener('click', backspace);
+equalsButton.addEventListener('click', evaluate);
+
+function handleNumber(number) { //text content is passed as number
+    if(display.textContent === '0' || shouldResetScreen) resetScreen();
+    if (number === '.' && display.textContent.includes('.')) return;
+    display.textContent += number;
 }
 
-function calculateResult() {
-    let result = operate(operator,parseFloat(firstNum), parseFloat(secondNum));
-    document.getElementById('display').textContent = result;
-    //reset
-    firstNum = result.toString();
-    secondNum = '';
-    operator = null;
+function resetScreen() {
+    display.textContent = '';
+    shouldResetScreen = false;
+}
+
+function handleOperator(operator) {
+    if (currentOperator !== null) evaluate();
+    firstNumber = display.textContent;
+    currentOperator = operator;
+    shouldResetScreen = true;
+}
+
+function evaluate() {
+    if (currentOperator === null || shouldResetScreen) return;
+    secondNumber = display.textContent;
+    display.textContent = operate(currentOperator, parseFloat(firstNumber), parseFloat(secondNumber));
+    currentOperator = null;
+}
+
+function clear() {
+    display.textContent = '0';
+    firstNumber = '';
+    secondNumber = '';
+    currentOperator = null;
+    shouldResetScreen = false;
+}
+
+function backspace() {
+    display.textContent = display.textContent.substring(0, display.textContent.length -1);
+    if (display.textContent === '') display.textContent = '0';
 }
